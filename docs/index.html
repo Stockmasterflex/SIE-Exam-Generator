@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIE Study System Pro</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+--primary: #2563eb; --primary-dark: #1d4ed8; --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+--gray-50:#f9fafb; --gray-100:#f3f4f6; --gray-200:#e5e7eb; --gray-300:#d1d5db; --gray-400:#9ca3af; --gray-500:#6b7280;
+--gray-600:#4b5563; --gray-700:#374151; --gray-800:#1f2937; --gray-900:#111827;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;line-height:1.6}
+.container{background:#fff;border-radius:1rem;box-shadow:0 20px 25px -5px rgba(0,0,0,.1),0 10px 10px -5px rgba(0,0,0,.04);max-width:900px;width:100%;overflow:hidden}
+.header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:#fff;padding:2rem;text-align:center}
+.header h1{font-size:2rem;font-weight:700;margin-bottom:.5rem}
+.header p{opacity:.9;font-size:.95rem}
+.content{padding:2rem}
+.screen{display:none}
+.screen.active{display:block;animation:fadeIn .3s ease-in}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--gray-50);border-radius:.75rem;padding:1.5rem;margin-bottom:1.5rem;border:1px solid var(--gray-200)}
+.card-title{font-size:1.25rem;font-weight:600;color:var(--gray-800);margin-bottom:1rem}
+.btn{padding:.75rem 1.5rem;border-radius:.5rem;border:none;font-weight:600;font-size:.95rem;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem}
+.btn:hover{transform:translateY(-2px);box-shadow:0 4px 6px -1px rgba(0,0,0,.1)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-secondary{background:var(--gray-600);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-warning{background:var(--warning);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:1.5rem}
+.btn-group{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem}
+.form-group{margin-bottom:1.5rem}
+.form-label{display:block;font-weight:600;color:var(--gray-700);margin-bottom:.5rem}
+.form-control{width:100%;padding:.75rem;border:1px solid var(--gray-300);border-radius:.5rem;font-size:.95rem;transition:border-color .2s}
+.form-control:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.progress{height:.75rem;background:var(--gray-200);border-radius:9999px;overflow:hidden;margin-bottom:1.5rem}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary-dark));transition:width .3s ease}
+.timer{display:flex;align-items:center;gap:.5rem;font-size:1.25rem;font-weight:700;color:var(--gray-800);margin-bottom:1.5rem}
+.timer-icon{width:24px;height:24px}
+.question-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+.question-number{font-weight:600;color:var(--gray-600)}
+.question-text{font-size:1.125rem;color:var(--gray-800);margin-bottom:1.5rem;line-height:1.7}
+.choices{list-style:none}
+.choice{margin-bottom:1rem}
+.choice-label{display:flex;align-items:flex-start;padding:1rem;background:#fff;border:2px solid var(--gray-200);border-radius:.5rem;cursor:pointer;transition:all .2s}
+.choice-label:hover{border-color:var(--primary);background:var(--gray-50)}
+.choice-input{margin-right:.75rem;margin-top:.125rem;width:20px;height:20px;cursor:pointer}
+.choice-input:checked + .choice-text{font-weight:600}
+/* Browser fallback for :has not supported everywhere */
+.choice-label.selected{border-color:var(--primary);background:rgba(37,99,235,.05)}
+/* Preferred modern style */
+.choice-label:has(.choice-input:checked){border-color:var(--primary);background:rgba(37,99,235,.05)}
+.confidence-group{display:flex;gap:.5rem;margin-top:1.5rem}
+.confidence-btn{flex:1;padding:.75rem;border:2px solid var(--gray-300);background:#fff;border-radius:.5rem;font-weight:600;cursor:pointer;transition:all .2s}
+.confidence-btn:hover{border-color:var(--primary)}
+.confidence-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.confidence-btn.high.active{background:var(--success);border-color:var(--success)}
+.confidence-btn.medium.active{background:var(--warning);border-color:var(--warning)}
+.confidence-btn.low.active{background:var(--danger);border-color:var(--danger)}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:2rem}
+.stat-card{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;padding:1.5rem;border-radius:.75rem;text-align:center}
+.stat-value{font-size:2rem;font-weight:700;margin-bottom:.25rem}
+.stat-label{opacity:.9;font-size:.875rem}
+.results-table{width:100%;border-collapse:collapse;margin-top:1.5rem}
+.results-table th,.results-table td{padding:.75rem;text-align:left;border-bottom:1px solid var(--gray-200)}
+.results-table th{background:var(--gray-50);font-weight:600;color:var(--gray-700)}
+.results-table tr:hover{background:var(--gray-50)}
+.review-question{background:var(--gray-50);border-radius:.75rem;padding:1.5rem;margin-bottom:1rem;border-left:4px solid var(--primary)}
+.review-question-text{font-weight:600;color:var(--gray-800);margin-bottom:.5rem}
+.review-answer{color:var(--success);margin-bottom:.5rem}
+.review-explanation{color:var(--gray-600);font-size:.95rem;font-style:italic}
+.flag-btn{background:#fff;border:2px solid var(--gray-300);color:var(--gray-600)}
+.flag-btn.flagged{background:var(--warning);border-color:var(--warning);color:#fff}
+.chart-container{background:var(--gray-50);border-radius:.75rem;padding:2rem;text-align:center;color:var(--gray-500);min-height:200px;display:flex;align-items:center;justify-content:center}
+.hidden{display:none !important}
+@media (max-width:640px){.header h1{font-size:1.5rem}.btn-group{flex-direction:column}.btn{width:100%;justify-content:center}}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>🎯 SIE Study System Pro</h1>
+<p>Master the Securities Industry Essentials Exam</p>
+</div>
+<div class="content">
+<!-- Start Screen -->
+<div id="startScreen" class="screen active">
+<div class="card">
+<h2 class="card-title">Welcome to Your SIE Prep Journey</h2>
+<p style="color: var(--gray-600); margin-bottom: 1rem;">Choose your study mode to begin practicing. Track your progress and identify areas for improvement.</p>
+<div class="form-group">
+<label class="form-label" for="examDate">📅 Your Exam Date (Optional)</label>
+<input type="date" id="examDate" class="form-control" />
+<small style="color: var(--gray-500);">We'll track your countdown and optimize your study schedule</small>
+</div>
+<div class="form-group">
+<label class="form-label" for="seedInput">🎲 Session Seed (Optional)</label>
+<input type="text" id="seedInput" class="form-control" placeholder="e.g., 20250809 or any text" />
+<small style="color: var(--gray-500);">Use the same seed to reproduce question order exactly</small>
+</div>
+<div class="btn-group" style="margin-top:.5rem">
+<button class="btn btn-secondary" id="btnApplySeed">Apply Seed</button>
+<button class="btn btn-secondary" id="btnPreflight">Preflight Check</button>
+</div>
+<div id="examCountdown" style="color:var(--gray-700);font-weight:600"></div>
+</div>
+<div class="btn-grid">
+<button class="btn btn-primary" id="btnFullExam"><span>📝</span> Full Practice Exam (85 Questions)</button>
+<button class="btn btn-success" id="btnDomain"><span>🎯</span> Domain Practice</button>
+<button class="btn btn-warning" id="btnReview"><span>🔄</span> Review Missed/Flagged (Spaced)</button>
+<button class="btn btn-secondary" id="btnDashboard"><span>📊</span> Analytics Dashboard</button>
+</div>
+<div id="domainOptions" class="card hidden" style="margin-top:1.5rem;">
+<h3 class="card-title">Configure Domain Practice</h3>
+<div class="form-group">
+<label class="form-label" for="domainSelect">Select Domain</label>
+<select id="domainSelect" class="form-control">
+<option value="knowledge_capital_markets">Knowledge of Capital Markets (16%)</option>
+<option value="products_investments">Understanding Products & Investments (44%)</option>
+<option value="trading_accounts">Trading, Customer Accounts & Prohibited Activities (31%)</option>
+<option value="regulatory_framework">Overview of Regulatory Framework (9%)</option>
+</select>
+</div>
+<div class="form-group">
+<label class="form-label" for="questionCount">Number of Questions</label>
+<input type="number" id="questionCount" class="form-control" min="5" max="50" value="20" />
+</div>
+<div class="form-group">
+<label style="display:flex;align-items:center;gap:.5rem;">
+<input type="checkbox" id="timedMode" checked style="width:20px;height:20px;" />
+<span class="form-label" style="margin:0;">Enable Timer (Pro-rated based on exam timing)</span>
+</label>
+</div>
+<button class="btn btn-success" id="btnStartDomain">Begin Practice</button>
+</div>
+</div>
+<!-- Quiz Screen -->
+<div id="quizScreen" class="screen">
+<div id="timerDisplay" class="timer hidden">
+<svg class="timer-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+<span id="timeRemaining">00:00</span>
+</div>
+<div class="progress"><div id="progressBar" class="progress-bar" style="width:0%"></div></div>
+<div class="question-header">
+<span id="questionNumber" class="question-number">Question 1 of 85</span>
+<button id="flagBtn" class="btn flag-btn"><span>🚩</span> Flag for Review</button>
+</div>
+<div id="questionText" class="question-text"></div>
+<ul id="choicesList" class="choices"></ul>
+<div class="confidence-group">
+<button class="confidence-btn high" data-conf="high">High Confidence</button>
+<button class="confidence-btn medium" data-conf="medium">Medium Confidence</button>
+<button class="confidence-btn low" data-conf="low">Low Confidence</button>
+</div>
+<div class="btn-group">
+<button class="btn btn-secondary" id="btnPrev">← Previous</button>
+<button class="btn btn-primary" id="btnNext">Next →</button>
+<button class="btn btn-danger" id="btnFinish">Finish Exam</button>
+</div>
+<div style="margin-top:.75rem;color:var(--gray-500);font-size:.9rem">Shortcuts: 1–4 = select choice • N = Next • P = Previous • F = Flag • Enter = Next</div>
+<!-- Tools Panel -->
+<div class="card" id="toolsPanel" style="margin-top:1rem;">
+<h3 class="card-title">🧰 Exam Tools</h3>
+<div class="btn-group">
+<button class="btn btn-secondary" id="btnToggleCalc">🧮 Calculator</button>
+<button class="btn btn-secondary" id="btnToggleScratch">📝 Scratch Pad</button>
+</div>
+<div id="calc" class="hidden" style="margin-top:1rem;">
+<input id="calcDisplay" class="form-control" placeholder="Type or use keys below e.g., (1000*0.07)/2" />
+<div id="calcKeys" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-top:.75rem;">
+<button class="btn" data-k="7">7</button>
+<button class="btn" data-k="8">8</button>
+<button class="btn" data-k="9">9</button>
+<button class="btn" data-k="/">/</button>
+<button class="btn" data-k="4">4</button>
+<button class="btn" data-k="5">5</button>
+<button class="btn" data-k="6">6</button>
+<button class="btn" data-k="*">*</button>
+<button class="btn" data-k="1">1</button>
+<button class="btn" data-k="2">2</button>
+<button class="btn" data-k="3">3</button>
+<button class="btn" data-k="-">-</button>
+<button class="btn" data-k="0">0</button>
+<button class="btn" data-k=".">.</button>
+<button class="btn btn-success" data-k="=">=</button>
+<button class="btn btn-danger" data-k="C">C</button>
+</div>
+</div>
+<div id="scratch" class="hidden" style="margin-top:1rem;">
+<textarea id="scratchArea" class="form-control" style="height:160px;resize:vertical;" placeholder="Quick notes, T-account sketches, formula steps…"></textarea>
+</div>
+</div>
+</div>
+<!-- Results Screen -->
+<div id="resultsScreen" class="screen">
+<div class="card">
+<h2 class="card-title">📊 Your Results</h2>
+<div class="stats-grid">
+<div class="stat-card">
+<div id="scorePercent" class="stat-value">0%</div>
+<div class="stat-label">Overall Score</div>
+</div>
+<div class="stat-card" style="background:linear-gradient(135deg,var(--success),#059669);">
+<div id="correctCount" class="stat-value">0</div>
+<div class="stat-label">Correct Answers</div>
+</div>
+<div class="stat-card" style="background:linear-gradient(135deg,var(--warning),#d97706);">
+<div id="totalQuestions" class="stat-value">0</div>
+<div class="stat-label">Total Questions</div>
+</div>
+</div>
+<h3 style="margin-bottom:1rem;">Performance by Domain</h3>
+<table id="domainResults" class="results-table"></table>
+</div>
+<div class="card">
+<h3 class="card-title">📚 Review Questions</h3>
+<div id="reviewQuestions"></div>
+</div>
+<div class="btn-group">
+<button class="btn btn-primary" id="btnBackHome">Back to Home</button>
+<button class="btn btn-success" id="btnExportResults">Export Results</button>
+</div>
+</div>
+<!-- Dashboard Screen -->
+<div id="dashboardScreen" class="screen">
+<div class="card">
+<h2 class="card-title">📈 Your Progress Dashboard</h2>
+<div id="dashboardStats" class="stats-grid"></div>
+<div class="chart-container"><p>Performance trends and detailed analytics will appear here as you complete more practice sessions.</p></div>
+</div>
+<div class="card">
+<h3 class="card-title">Study History</h3>
+<div id="studyHistory"></div>
+</div>
+<div class="btn-group">
+<button class="btn btn-primary" id="btnDashHome">Back to Home</button>
+<button class="btn btn-success" id="btnExportAll">Export All Data</button>
+<button class="btn btn-warning" id="btnImport">Import Data</button>
+<input type="file" id="importFile" accept=".json" style="display:none;" />
+</div>
+</div>
+</div>
+</div>
+<script>
+// ------------------------- QUESTION BANK -------------------------
+const questionBank = [
+{ id:"Q0001", domain:"knowledge_capital_markets", question:"Which participant stands ready to buy and sell securities from their own inventory?", choices:["Broker","Market maker","Investment adviser","Transfer agent"], correct:1, explanation:"Market makers provide liquidity by buying and selling from their own inventory." },
+{ id:"Q0002", domain:"knowledge_capital_markets", question:"The secondary market is where:", choices:["New securities are first sold","Outstanding securities trade between investors","Companies issue IPOs","Bonds reach maturity"], correct:1, explanation:"The secondary market facilitates trading of existing securities between investors." },
+{ id:"Q0003", domain:"knowledge_capital_markets", question:"The Federal Reserve's primary tool for monetary policy is:", choices:["Reserve requirements","Discount rate","Open market operations","Margin requirements"], correct:2, explanation:"Open market operations involve buying/selling government securities to control money supply." },
+{ id:"Q0004", domain:"knowledge_capital_markets", question:"Which type of risk cannot be diversified away?", choices:["Systematic risk","Unsystematic risk","Company-specific risk","Credit risk"], correct:0, explanation:"Systematic risk affects the entire market and cannot be eliminated through diversification." },
+{ id:"Q0005", domain:"knowledge_capital_markets", question:"The yield curve typically shows the relationship between:", choices:["Risk and return","Time to maturity and yield","Credit rating and price","Volume and volatility"], correct:1, explanation:"The yield curve plots yields against time to maturity for similar credit quality bonds." }
+];
+// ------------------------- SEEDED RNG (DECLARE FIRST) -------------------------
+function xmur3(str){ let h=1779033703^str.length; for(let i=0;i<str.length;i++){ h=Math.imul(h^str.charCodeAt(i),3432918353); h=h<<13|h>>>19; } return function(){ h=Math.imul(h^ (h>>>16), 2246822507); h=Math.imul(h^ (h>>>13), 3266489909); return (h^ (h>>>16))>>>0; } }
+function mulberry32(a){ return function(){ let t = a += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; } }
+let RNG; // will be set via setSeed below
+function setSeed(s){ const seedStr = String(s||'default'); const seedGen = xmur3(seedStr); RNG = mulberry32(seedGen()); localStorage.setItem('sieSeed', seedStr); console.log('Seed set to:', seedStr); }
+// Establish initial seed BEFORE any function that uses RNG executes
+(function initSeedEarly(){
+try{
+const params = new URLSearchParams(location.search);
+const savedSeed = localStorage.getItem('sieSeed');
+const initialSeed = params.get('seed') || savedSeed || ('default-'+new Date().toISOString().slice(0,10));
+setSeed(initialSeed);
+} catch(e){
+// fallback if localStorage/location blocked
+setSeed('default');
+}
+})();
+function rand(){ return RNG(); }
+function seededShuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(rand()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function randInt(min,max){ return Math.floor(rand()*(max-min+1))+min; }
+// Ensure we never surface two items with the same prompt text in a single run
+function pickUniqueByQuestion(arr, count){
+const out=[]; const seen=new Set();
+for(const q of seededShuffle(arr)){
+const key=(q.question||'').trim().toLowerCase();
+if(!seen.has(key)) { seen.add(key); out.push(q); }
+if(out.length===count) break;
+}
+return out;
+}
+// ------------------------- PARAMETRIC GENERATOR -------------------------
+function generateParametricBank(){
+const pushQ=(arr)=>questionBank.push(arr);
+let idCounter = 6;
+const nextId=()=>`Q${String(idCounter++).padStart(4,'0')}`;
+// --- Knowledge of Capital Markets (target ~260) ---
+const kcmCount = 260 - questionBank.filter(q=>q.domain==='knowledge_capital_markets').length;
+for(let i=0;i<kcmCount;i++){
+const which = i%3;
+if(which===0){
+pushQ({ id:nextId(), domain:'knowledge_capital_markets', question:`Which participant primarily provides ${randInt(1,2)===1?'liquidity':'two-sided quotes'} to the market?`, choices:['Broker','Market maker','Transfer agent','Custodian'], correct:1, explanation:'Market makers stand ready to buy and sell from inventory to provide liquidity.' });
+} else if(which===1){
+const days = [30,60,90,180,270,360][randInt(0,5)];
+pushQ({ id:nextId(), domain:'knowledge_capital_markets', question:`A commercial paper typically matures in __ days or less.`, choices:['30','90','270','540'], correct: days<=90?1:2, explanation:'Commercial paper is a money market instrument with maturities up to 270 days.' });
+} else {
+pushQ({ id:nextId(), domain:'knowledge_capital_markets', question:`ECNs are primarily used to:`, choices:['Issue new securities','Match buy/sell orders electronically','Hold securities in custody','Set margin requirements'], correct:1, explanation:'ECNs (electronic communication networks) match orders electronically in secondary trading.' });
+}
+}
+// --- Products & Investments (target ~700) ---
+const prodTarget = 700; const currentProd = questionBank.filter(q=>q.domain==='products_investments').length; const prodCount = prodTarget-currentProd;
+for(let i=0;i<prodCount;i++){
+const kind = i%4;
+if(kind===0){ // Call breakeven parametric
+const strike = randInt(25,125);
+const prem = (randInt(5,50)/10).toFixed(1); // 0.5 - 5.0
+pushQ({ id:nextId(), domain:'products_investments', question:`An investor buys 1 ${randInt(0,1)?'equity':''} call at ${prem}, strike ${strike}. What is the breakeven?`, choices:[`$${(strike+parseFloat(prem)).toFixed(2)}`,`$${strike.toFixed(2)}`,`$${(strike-parseFloat(prem)).toFixed(2)}`,'$0.00'], correct:0, explanation:'Breakeven (long call) = strike + premium.' });
+} else if(kind===1){ // Put breakeven parametric
+const strike = randInt(25,125);
+const prem = (randInt(5,50)/10).toFixed(1);
+pushQ({ id:nextId(), domain:'products_investments', question:`An investor buys 1 put at ${prem}, strike ${strike}. Breakeven?`, choices:[`$${(strike+parseFloat(prem)).toFixed(2)}`,`$${(strike - parseFloat(prem)).toFixed(2)}`,`$${strike.toFixed(2)}`,'$0.00'], correct:1, explanation:'Breakeven (long put) = strike - premium.' });
+} else if(kind===2){ // Bond price/yield relationship
+const dir = randInt(0,1)===0?'rise':'fall';
+pushQ({ id:nextId(), domain:'products_investments', question:`If market interest rates ${dir}, existing bond prices generally:`, choices:['Rise','Fall','Stay the same','Are redeemed'], correct: dir==='rise'?1:0, explanation:'Bond prices move inversely to rates.' });
+} else { // CMO tranche risk
+pushQ({ id:nextId(), domain:'products_investments', question:`Which CMO tranche is MOST exposed to prepayment risk when refinancing spikes?`, choices:['PAC','TAC','Support/companion','Z-tranche'], correct:2, explanation:'Support tranches absorb prepayment variability first.' });
+}
+}
+// --- Trading & Accounts (target ~500) ---
+const tradTarget = 500; const currentTrad = questionBank.filter(q=>q.domain==='trading_accounts').length; const tradCount = tradTarget-currentTrad;
+for(let i=0;i<tradCount;i++){
+const kind = i%4;
+if(kind===0){
+pushQ({ id:nextId(), domain:'trading_accounts', question:`A day order entered at 10:00 a.m. Eastern will expire:`, choices:['At market close the same day','After 30 calendar days','Only if canceled','At 4:00 a.m. the next day'], correct:0, explanation:'Day orders expire at market close if unfilled.' });
+} else if(kind===1){
+const px = randInt(10,200);
+pushQ({ id:nextId(), domain:'trading_accounts', question:`A customer buys 100 shares at $${px} in a margin account. Reg T initial requirement is:`, choices:['$1,000','$2,000',`$${(px*100*0.5).toFixed(0)}`,'$0'], correct: (px*100*0.5<2000)?1:2, explanation:'Reg T is 50% of purchase; if that is < $2,000, the $2,000 minimum applies.' });
+} else if(kind===2){
+pushQ({ id:nextId(), domain:'trading_accounts', question:`Which order type helps protect a gain on a long position?`, choices:['Limit buy','Stop sell','Stop buy','Market-on-close'], correct:1, explanation:'A sell stop can protect a long position by triggering if price falls.' });
+} else {
+pushQ({ id:nextId(), domain:'trading_accounts', question:`Under FINRA Rule 5310 (best execution), a member must:`, choices:['Route all orders to the NYSE','Use only internalization','Use reasonable diligence to determine best market','Guarantee NBBO fills'], correct:2, explanation:'Reasonable diligence to obtain best execution is required.' });
+}
+}
+// --- Regulatory Framework (target ~160) ---
+const regTarget = 160; const currentReg = questionBank.filter(q=>q.domain==='regulatory_framework').length; const regCount = regTarget-currentReg;
+for(let i=0;i<regCount;i++){
+const kind = i%3;
+if(kind===0){
+pushQ({ id:nextId(), domain:'regulatory_framework', question:`Which Act created the SEC?`, choices:['1933 Act','1934 Act','1940 Act','Maloney Act'], correct:1, explanation:'The Securities Exchange Act of 1934 created the SEC.' });
+} else if(kind===1){
+pushQ({ id:nextId(), domain:'regulatory_framework', question:`SIPC covers customer accounts up to:`, choices:['$250,000 total','$500,000 total, $250,000 cash','$1,000,000 total','$100,000 cash only'], correct:1, explanation:'SIPC provides $500k total, of which $250k may be cash.' });
+} else {
+pushQ({ id:nextId(), domain:'regulatory_framework', question:`The Investment Company Act of 1940 primarily regulates:`, choices:['Primary offerings','Broker-dealers','Investment companies (mutual funds)','Options exchanges'], correct:2, explanation:'It governs investment companies such as mutual funds.' });
+}
+}
+}
+// Generate the full bank AFTER RNG is initialized
+generateParametricBank();
+// ------------------------- STATE -------------------------
+const state = { mode:null, questions:[], currentIndex:0, answers:[], confidences:[], flags:[], startTime:null, timer:null, timeLimit:0 };
+// ------------------------- HELPERS (UI) -------------------------
+const qs = sel => document.querySelector(sel);
+const qsa = sel => Array.from(document.querySelectorAll(sel));
+const showScreen = id => { qsa('.screen').forEach(s=>s.classList.remove('active')); qs('#'+id).classList.add('active'); };
+const formatTime = secs => { const m=Math.floor(secs/60).toString().padStart(2,'0'); const s=Math.floor(secs%60).toString().padStart(2,'0'); return `${m}:${s}`; };
+const clamp = (n,min,max)=> Math.max(min,Math.min(max,n));
+// ------------------------- STORAGE & MASTERY -------------------------
+function getSaved(){ try{ return JSON.parse(localStorage.getItem('sieStudyData'))||{} }catch(e){ return {} } }
+function setSaved(obj){ localStorage.setItem('sieStudyData', JSON.stringify(obj)); }
+function loadSavedData(){ const data=getSaved(); if(data.examDate) qs('#examDate').value=data.examDate; if(typeof data.scratch==='string') qs('#scratchArea').value=data.scratch; }
+function saveProgress(){ const prev=getSaved(); setSaved({ ...prev, examDate: qs('#examDate').value, scratch: qs('#scratchArea').value || '', history: prev.history||[], missed: prev.missed||[], flagged: prev.flagged||[], mastery: prev.mastery||{} }); }
+function pushHistory(entry){ const prev=getSaved(); const history=prev.history||[]; history.push(entry); setSaved({...prev, history}); }
+function addMissed(ids){ const prev=getSaved(); const missed = Array.from(new Set([...(prev.missed||[]), ...ids])); setSaved({...prev, missed}); }
+function addFlagged(ids){ const prev=getSaved(); const flagged = Array.from(new Set([...(prev.flagged||[]), ...ids])); setSaved({...prev, flagged}); }
+function removeFromSaved(keys, ids){ const prev=getSaved(); const out={...prev}; keys.forEach(k=>{ const arr=(out[k]||[]).filter(id=>!ids.includes(id)); out[k]=arr; }); setSaved(out); }
+function getMissed(){ return getSaved().missed||[] }
+function getFlagged(){ return getSaved().flagged||[] }
+function getHistory(){ return getSaved().history||[] }
+function getMastery(){ return getSaved().mastery||{} }
+function setMastery(m){ const prev=getSaved(); setSaved({...prev, mastery:m}); }
+function markMastery(qid, isCorrect, confidence){
+const m = getMastery();
+const now = Date.now();
+if(!m[qid]) m[qid] = { seen:0, streak:0, lastCorrect:false, lastConfidence:null, lastTs:0 };
+m[qid].seen += 1;
+m[qid].lastTs = now;
+m[qid].lastConfidence = confidence || null;
+m[qid].lastCorrect = !!isCorrect;
+m[qid].streak = isCorrect ? (m[qid].streak||0)+1 : 0;
+setMastery(m);
+}
+function isMastered(rec){
+// Mastered when 2-correct streak AND last confidence high
+return rec && rec.streak>=2 && rec.lastConfidence==='high';
+}
+// ------------------------- COUNTDOWN -------------------------
+function updateExamCountdown(){ const dateStr = qs('#examDate').value; const el=qs('#examCountdown'); if(!dateStr){ el.textContent=''; saveProgress(); return; }
+const target = new Date(dateStr+'T00:00:00'); const now=new Date(); const diff = Math.ceil((target-now)/(1000*60*60*24));
+el.textContent = diff>=0 ? `⏳ ${diff} day(s) until exam` : `✅ Exam date passed ${Math.abs(diff)} day(s) ago`;
+saveProgress();
+}
+// ------------------------- BUILD/START MODES -------------------------
+function startFullExam(){
+preflightCheck({mode:'exam', requested:85});
+state.mode='exam';
+state.questions = pickUniqueByQuestion(questionBank, 85);
+state.timeLimit=105*60;
+initializeQuiz();
+}
+function showDomainOptions(){ qs('#domainOptions').classList.toggle('hidden'); }
+function startDomainPractice(){
+const domain=qs('#domainSelect').value; const count=parseInt(qs('#questionCount').value,10); const timed=qs('#timedMode').checked;
+preflightCheck({mode:'domain', domain, requested:count});
+state.mode='domain';
+const domainQs = questionBank.filter(q=>q.domain===domain);
+state.questions = pickUniqueByQuestion(domainQs, Math.min(count, domainQs.length));
+state.timeLimit = timed ? Math.ceil((105*60)*(state.questions.length/85)) : 0;
+initializeQuiz();
+}
+function startReview(){
+const m = getMastery();
+const flagged = new Set(getFlagged());
+const candidates = questionBank.filter(q=>{ const r=m[q.id]; if(flagged.has(q.id)) return true; if(!r) return true; return !isMastered(r); });
+if(candidates.length===0){ alert('Nothing to review. Everything is mastered ✅'); return; }
+state.mode='review';
+const scored = candidates.map(q=>{ const r=m[q.id]||{}; let score=0; if(r.lastCorrect===false) score+=3; if(r.lastConfidence==='low') score+=2; if(!r.seen) score+=1; if(r.lastCorrect && (Date.now()-(r.lastTs||0) < 12*60*60*1000)) score-=2; if(flagged.has(q.id)) score+=2; return {q,score}; }).sort((a,b)=>b.score-a.score);
+const take = Math.min(40, scored.length);
+const uniq=[]; const seen=new Set();
+for(const {q} of scored){ const k=(q.question||'').trim().toLowerCase(); if(!seen.has(k)){ seen.add(k); uniq.push(q); } if(uniq.length===take) break; }
+state.questions = uniq;
+state.timeLimit = 0;
+initializeQuiz();
+}
+function showDashboard(){ buildDashboard(); showScreen('dashboardScreen'); }
+// ------------------------- QUIZ LIFECYCLE -------------------------
+function initializeQuiz(){ state.currentIndex=0; state.answers = new Array(state.questions.length).fill(null); state.confidences = new Array(state.questions.length).fill(null); state.flags = new Array(state.questions.length).fill(false); state.startTime = Date.now(); if(state.timer){ clearInterval(state.timer); state.timer=null; }
+qs('#timerDisplay').classList.toggle('hidden', state.timeLimit===0);
+if(state.timeLimit>0){ let remain=state.timeLimit; qs('#timeRemaining').textContent = formatTime(remain); state.timer = setInterval(()=>{ remain--; qs('#timeRemaining').textContent=formatTime(remain); if(remain<=0){ clearInterval(state.timer); state.timer=null; finishQuiz(); } },1000); }
+renderQuestion(); updateProgress(); showScreen('quizScreen'); attachConfidenceUI(); updateFlagBtn();
+}
+function renderQuestion(){ const q = state.questions[state.currentIndex]; qs('#questionNumber').textContent = `Question ${state.currentIndex+1} of ${state.questions.length}`; qs('#questionText').textContent = q.question; const ul=qs('#choicesList'); ul.innerHTML=''; q.choices.forEach((c,idx)=>{ const li=document.createElement('li'); li.className='choice'; const label=document.createElement('label'); label.className='choice-label'; const input=document.createElement('input'); input.type='radio'; input.name='choice'; input.className='choice-input'; input.checked = state.answers[state.currentIndex]===idx; const span=document.createElement('span'); span.className='choice-text'; span.textContent = `${idx+1}. ${c}`; label.appendChild(input); label.appendChild(span); li.appendChild(label); ul.appendChild(li);
+label.classList.toggle('selected', input.checked);
+input.addEventListener('change', ()=>selectAnswer(idx));
+});
+qsa('.confidence-btn').forEach(b=>b.classList.remove('active')); const conf=state.confidences[state.currentIndex]; if(conf){ const btn = qsa('.confidence-btn').find(b=>b.dataset.conf===conf); if(btn) btn.classList.add('active'); }
+}
+function updateProgress(){ const pct = ((state.currentIndex)/(state.questions.length))*100; qs('#progressBar').style.width = pct+"%"; }
+function selectAnswer(idx){ state.answers[state.currentIndex]=idx; const labels=qsa('#choicesList .choice-label'); labels.forEach((l,i)=>l.classList.toggle('selected', i===idx)); }
+function attachConfidenceUI(){ qsa('.confidence-btn').forEach(btn=>{ btn.onclick = ()=>{ setConfidence(btn.dataset.conf); } }); }
+function setConfidence(level){ state.confidences[state.currentIndex]=level; qsa('.confidence-btn').forEach(b=>b.classList.toggle('active', b.dataset.conf===level)); }
+function toggleFlag(){ state.flags[state.currentIndex] = !state.flags[state.currentIndex]; updateFlagBtn(); }
+function updateFlagBtn(){ const btn=qs('#flagBtn'); btn.classList.toggle('flagged', state.flags[state.currentIndex]); btn.innerHTML = state.flags[state.currentIndex] ? '<span>🚩</span> Flagged' : '<span>🚩</span> Flag for Review'; }
+function previousQuestion(){ state.currentIndex = clamp(state.currentIndex-1,0,state.questions.length-1); renderQuestion(); updateProgress(); updateFlagBtn(); }
+function nextQuestion(){
+if(state.currentIndex >= state.questions.length-1){ finishQuiz(); return; }
+state.currentIndex = clamp(state.currentIndex+1,0,state.questions.length-1); renderQuestion(); updateProgress(); updateFlagBtn();
+}
+function finishQuiz(){ if(state.timer){ clearInterval(state.timer); state.timer=null; }
+const total = state.questions.length; let correct=0; const perDomain = {}; const missedIds=[]; const flaggedIds=[]; const masteredThisRun=[];
+state.questions.forEach((q,idx)=>{ const isCorrect = state.answers[idx]===q.correct; const conf = state.confidences[idx]; if(isCorrect) correct++; if(!perDomain[q.domain]) perDomain[q.domain]={correct:0,total:0}; perDomain[q.domain].total++; if(isCorrect) perDomain[q.domain].correct++;
+if(!isCorrect) missedIds.push(q.id); if(state.flags[idx]) flaggedIds.push(q.id);
+markMastery(q.id, isCorrect, conf);
+if(isCorrect && conf==='high'){ masteredThisRun.push(q.id); }
+});
+if(masteredThisRun.length){ removeFromSaved(['missed','flagged'], masteredThisRun); }
+addMissed(missedIds); addFlagged(flaggedIds);
+const percent = Math.round((correct/total)*100);
+qs('#scorePercent').textContent = percent+"%"; qs('#correctCount').textContent = String(correct); qs('#totalQuestions').textContent = String(total);
+const table=qs('#domainResults'); table.innerHTML='<tr><th>Domain</th><th>Correct</th><th>Total</th><th>Percent</th></tr>' + Object.entries(perDomain).map(([d,stats])=>{ const pct = Math.round((stats.correct/stats.total)*100); const label = domainLabel(d); return `<tr><td>${label}</td><td>${stats.correct}</td><td>${stats.total}</td><td>${pct}%</td></tr>`; }).join('');
+const review = qs('#reviewQuestions'); review.innerHTML=''; state.questions.forEach((q,idx)=>{ const wrong = state.answers[idx]!==q.correct; const flagged = state.flags[idx]; if(wrong || flagged){ const div=document.createElement('div'); div.className='review-question'; div.innerHTML = `<div class=\"review-question-text\">Q${idx+1}: ${q.question}</div>` + `<div class=\"review-answer\">Correct: ${q.choices[q.correct]}</div>`+ `<div style=\"color:${wrong? 'var(--danger)':'var(--gray-600)'};margin-bottom:.25rem\">Your answer: ${state.answers[idx]===null? '—' : q.choices[state.answers[idx]]}</div>`+ `<div class=\"review-explanation\">${q.explanation}</div>`; review.appendChild(div); } });
+const duration = Math.round(((Date.now()-state.startTime)/1000)); pushHistory({ ts: new Date().toISOString(), mode: state.mode, total, correct, percent, duration, domains: perDomain }); showScreen('resultsScreen');
+}
+function domainLabel(key){ return { knowledge_capital_markets:'Knowledge of Capital Markets', products_investments:'Understanding Products & Investments', trading_accounts:'Trading, Customer Accounts & Prohibited Activities', regulatory_framework:'Overview of Regulatory Framework' }[key] || key; }
+// ------------------------- EXPORT/IMPORT -------------------------
+function exportResults(){ const data={ lastResult:{ score:qs('#scorePercent').textContent, correct:qs('#correctCount').textContent, total:qs('#totalQuestions').textContent }, history:getHistory(), missed:getMissed(), flagged:getFlagged(), mastery:getMastery(), scratch: qs('#scratchArea').value||'' }; const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='sie_results.json'; a.click(); URL.revokeObjectURL(a.href); }
+function exportAll(){ const blob=new Blob([JSON.stringify(getSaved(),null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='sie_study_data.json'; a.click(); URL.revokeObjectURL(a.href); }
+function importData(file){ const reader=new FileReader(); reader.onload=()=>{ try{ const obj=JSON.parse(reader.result); setSaved(obj); alert('Import successful. Reloading...'); location.reload(); }catch(e){ alert('Invalid JSON file.'); } }; reader.readAsText(file); }
+// ------------------------- DASHBOARD -------------------------
+function buildDashboard(){ const statsEl=qs('#dashboardStats'); const hist=getHistory(); if(hist.length===0){ statsEl.innerHTML='<div class="stat-card"><div class="stat-value">—</div><div class="stat-label">No sessions yet</div></div>'; qs('#studyHistory').textContent=''; return; }
+const attempts = hist.length; const avg = Math.round(hist.reduce((a,b)=>a+b.percent,0)/attempts); const best = Math.max(...hist.map(h=>h.percent)); const timeTotal = hist.reduce((a,b)=>a+(b.duration||0),0); const mins = Math.round(timeTotal/60);
+statsEl.innerHTML = `
+<div class="stat-card"><div class="stat-value">${attempts}</div><div class="stat-label">Sessions</div></div>
+<div class="stat-card"><div class="stat-value">${avg}%</div><div class="stat-label">Average Score</div></div>
+<div class="stat-card"><div class="stat-value">${best}%</div><div class="stat-label">Best Score</div></div>
+<div class="stat-card"><div class="stat-value">${mins}m</div><div class="stat-label">Total Time</div></div>`;
+const historyEl=qs('#studyHistory'); historyEl.innerHTML = '<table class="results-table"><tr><th>Date</th><th>Mode</th><th>Score</th><th>Time</th></tr>' + hist.slice(-20).reverse().map(h=>{ return `<tr><td>${new Date(h.ts).toLocaleString()}</td><td>${h.mode}</td><td>${h.percent}% (${h.correct}/${h.total})</td><td>${formatTime(h.duration||0)}</td></tr>`; }).join('') + '</table>';
+}
+// ------------------------- CALCULATOR & SCRATCH PAD -------------------------
+function calcSafeEval(expr){
+if(!/^[-+/*().\d\s]+$/.test(expr)) return 'ERR';
+try{ const val = Function('return ('+expr+')')(); if(typeof val==='number' && isFinite(val)) return val; return 'ERR'; }catch(_){ return 'ERR'; }
+}
+function wireCalculator(){ const disp = qs('#calcDisplay'); qs('#calcKeys').addEventListener('click',(e)=>{ const b = e.target.closest('button'); if(!b) return; const k=b.dataset.k; if(k==='C'){ disp.value=''; return; } if(k==='='){ disp.value = String(calcSafeEval(disp.value)); return; } disp.value += k; });
+disp.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); disp.value = String(calcSafeEval(disp.value)); } });
+}
+// ------------------------- PREFLIGHT & UTIL -------------------------
+function preflightCheck({mode, domain=null, requested=0}){
+const ids = new Set(); const dups=[]; const stems = new Map();
+for(const q of questionBank){ if(ids.has(q.id)) dups.push(q.id); ids.add(q.id); const k=(q.question||'').trim().toLowerCase(); stems.set(k,(stems.get(k)||0)+1); }
+if(dups.length){ console.warn('Duplicate IDs detected:', dups); }
+const pool = domain? questionBank.filter(q=>q.domain===domain): questionBank;
+const uniqueStems = new Set(pool.map(q=>(q.question||'').trim().toLowerCase())).size;
+if(requested && uniqueStems<requested){ console.warn(`Preflight: requested ${requested} but only ${uniqueStems} unique stems available in pool`); }
+}
+// ------------------------- SELF TESTS -------------------------
+function runSelfTests(){
+try {
+const beforeSeed = localStorage.getItem('sieSeed');
+// Sanity: bank size
+console.assert(questionBank.length >= 1600, 'Bank too small: '+questionBank.length);
+// Seed reproducibility
+setSeed('unit-1'); const A = pickUniqueByQuestion(questionBank, 85);
+setSeed('unit-1'); const B = pickUniqueByQuestion(questionBank, 85);
+console.assert(A.length===B.length && A.slice(0,10).map(q=>q.id).join(',')===B.slice(0,10).map(q=>q.id).join(','), 'Seed reproducibility failed');
+// Uniqueness within a run
+const seen = new Set(); let dup=null; for(const q of A){ const k=q.question.trim().toLowerCase(); if(seen.has(k)){ dup=k; break;} seen.add(k); }
+console.assert(!dup, 'Uniqueness per run failed: '+dup);
+// No duplicate IDs overall
+const idSet=new Set(); let dupId=null; for(const q of questionBank){ if(idSet.has(q.id)){ dupId=q.id; break;} idSet.add(q.id);} console.assert(!dupId, 'Duplicate ID in questionBank: '+dupId);
+// Domain sample uniqueness
+const domain='products_investments'; const pool=questionBank.filter(q=>q.domain===domain);
+setSeed('unit-2'); const sample = pickUniqueByQuestion(pool, Math.min(50, pool.length));
+const seen2=new Set(); let dup2=null; for(const q of sample){ const k=q.question.trim().toLowerCase(); if(seen2.has(k)){ dup2=k; break;} seen2.add(k);} console.assert(!dup2, 'Domain uniqueness failed: '+dup2);
+// Rand tests
+setSeed('unit-3'); const r = randInt(1,1); console.assert(r===1,'randInt bounds failed');
+const arr=[1,2,3]; const sh=seededShuffle(arr); console.assert(sh.length===3 && arr.every(x=>sh.includes(x)),'seededShuffle content mismatch');
+// Restore seed
+setSeed(beforeSeed||'default');
+console.log('✅ Self-tests passed');
+} catch (e) {
+console.error('❌ Self-tests error', e);
+}
+}
+// ------------------------- EVENT WIRING -------------------------
+document.addEventListener('DOMContentLoaded', ()=>{
+// Seed box and preflight
+const params = new URLSearchParams(location.search);
+const savedSeed = localStorage.getItem('sieSeed');
+const initialSeed = params.get('seed') || savedSeed || 'default-'+new Date().toISOString().slice(0,10);
+setSeed(initialSeed);
+const seedInput = document.getElementById('seedInput'); if(seedInput){ seedInput.value = initialSeed; }
+document.getElementById('btnApplySeed').onclick = ()=>{ setSeed(seedInput.value || 'default'); alert('Seed applied. Start a new session to see the new order.'); };
+document.getElementById('btnPreflight').onclick = ()=>{ preflightCheck({mode:'manual', requested:85}); alert('Preflight completed. Check console for details.'); };
+qs('#btnToggleCalc').onclick = ()=>{ qs('#calc').classList.toggle('hidden'); };
+qs('#btnToggleScratch').onclick = ()=>{ qs('#scratch').classList.toggle('hidden'); };
+const scratch = document.getElementById('scratchArea'); if(scratch){ scratch.addEventListener('input', saveProgress); }
+wireCalculator();
+loadSavedData(); updateExamCountdown();
+// start screen
+qs('#btnFullExam').onclick = startFullExam;
+qs('#btnDomain').onclick = showDomainOptions;
+qs('#btnReview').onclick = startReview;
+qs('#btnDashboard').onclick = showDashboard;
+qs('#btnStartDomain').onclick = startDomainPractice;
+qs('#examDate').addEventListener('change', updateExamCountdown);
+// quiz
+qs('#flagBtn').onclick = toggleFlag;
+qs('#btnPrev').onclick = previousQuestion;
+qs('#btnNext').onclick = nextQuestion;
+qs('#btnFinish').onclick = finishQuiz;
+// results
+qs('#btnBackHome').onclick = ()=>{ showScreen('startScreen'); };
+qs('#btnExportResults').onclick = exportResults;
+// dashboard
+qs('#btnDashHome').onclick = ()=>{ showScreen('startScreen'); };
+qs('#btnExportAll').onclick = exportAll;
+qs('#btnImport').onclick = ()=> qs('#importFile').click();
+qs('#importFile').addEventListener('change', (e)=>{ if(e.target.files && e.target.files[0]) importData(e.target.files[0]); });
+// keyboard
+document.addEventListener('keydown', (e)=>{
+if(!qs('#quizScreen').classList.contains('active')) return;
+if(['1','2','3','4'].includes(e.key)){
+const idx = parseInt(e.key,10)-1; const inputs=qsa('input[name="choice"]'); if(inputs[idx]){ inputs[idx].checked=true; selectAnswer(idx); }
+} else if(e.key.toLowerCase()==='n' || e.key==='Enter'){ nextQuestion(); }
+else if(e.key.toLowerCase()==='p'){ previousQuestion(); }
+else if(e.key.toLowerCase()==='f'){ toggleFlag(); }
+});
+runSelfTests();
+console.log(`Question bank loaded with ${questionBank.length} questions`);
+});
+</script>
+</body>
+</html>

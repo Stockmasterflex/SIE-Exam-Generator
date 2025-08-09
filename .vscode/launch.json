@@ -1,0 +1,11 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "pwa-chrome",
+            "request": "launch",
+            "name": "Open App",
+            "url": "http://localhost:5173/index.html?seed=1234"
+        }
+    ]
+}

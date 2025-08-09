@@ -1,0 +1,11 @@
+{
+  "name": "sie-study-system-pro",
+  "private": true,
+  "scripts": {
+    "start": "npx serve -l 5173 .",
+    "deploy": "node deploy.mjs"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}
