@@ -5,7 +5,7 @@ const root = process.cwd();
 const docs = join(root, 'docs');
 mkdirSync(docs, { recursive: true });
 
-const files = ['index.html','style.css','app.js','sw.js','manifest.webmanifest','favicon.ico','icon-192.png','icon-512.png'];
+const files = ['index.html','style.css','app.js','sw.js','manifest.webmanifest','favicon.ico','icon-192.png','icon-512.png','nocache.js'];
 
 for (const f of files) {
     const src = join(root, f);
