@@ -33,24 +33,23 @@ function setSeed(s, persist = true) {
     }
 }
 
-(function initSeedEarly() {
+(async () => {
     try {
-        const params = new URLSearchParams(location.search);
-        const explicit = params.get('seed') || localStorage.getItem('sieSeed');
-        if (explicit) {
-            setSeed(explicit);
-        } else {
-            const buf = new Uint32Array(1);
-            if (typeof crypto !== 'undefined' && crypto && crypto.getRandomValues) {
-                crypto.getRandomValues(buf);
-            } else {
-                buf[0] = Math.floor(Math.random() * 2 ** 32);
-            }
-            const sessionSeed = `session-${buf[0]}`;
-            setSeed(sessionSeed, false);
+        if ('serviceWorker' in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(r => r.unregister()));
+        }
+        if (window.caches?.keys) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+        }
+        const url = new URL(location.href);
+        if (!url.searchParams.has('_v')) {
+            url.searchParams.set('_v', Date.now().toString());
+            location.replace(url.toString());
         }
     } catch (e) {
-        setSeed('session-' + Math.floor(Math.random() * 2 ** 32), false);
+        console.log('nocache error', e);
     }
 })();
 
