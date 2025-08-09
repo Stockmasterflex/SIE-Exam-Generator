@@ -21,8 +21,7 @@ function mulberry32(a) {
     };
 }
 
-let RNG; // will be set via setSeed below
-
+let RNG;
 function setSeed(s, persist = true) {
     const seedStr = String(s || 'default');
     const seedGen = xmur3(seedStr);
@@ -34,13 +33,12 @@ function setSeed(s, persist = true) {
     }
 }
 
-// Establish initial seed (edited for persisted vs. session seed)
 (function initSeedEarly() {
     try {
         const params = new URLSearchParams(location.search);
         const explicit = params.get('seed') || localStorage.getItem('sieSeed');
         if (explicit) {
-            setSeed(explicit); // persisted reproducibility
+            setSeed(explicit);
         } else {
             const buf = new Uint32Array(1);
             if (typeof crypto !== 'undefined' && crypto && crypto.getRandomValues) {
@@ -49,7 +47,7 @@ function setSeed(s, persist = true) {
                 buf[0] = Math.floor(Math.random() * 2 ** 32);
             }
             const sessionSeed = `session-${buf[0]}`;
-            setSeed(sessionSeed, false); // do NOT write this to localStorage
+            setSeed(sessionSeed, false);
         }
     } catch (e) {
         setSeed('session-' + Math.floor(Math.random() * 2 ** 32), false);
@@ -58,6 +56,41 @@ function setSeed(s, persist = true) {
 
 // Register service worker
 navigator.serviceWorker && navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(console.warn);
+
+// ---- kill the Session Seed UI & logic (drop-in) ----
+(() => {
+    function removeSeedStuff() {
+        for (const lbl of document.querySelectorAll('label')) {
+            if (/session seed/i.test(lbl.textContent || '')) {
+                const section = lbl.closest('.card, .panel, .section, form, div') || lbl.parentElement;
+                if (section) section.remove();
+            }
+        }
+        const sel = [
+            '#seed',
+            '#seed-input',
+            '#session-seed',
+            '.seed',
+            '.seed-section',
+            '#apply-seed',
+            '#preflight-check'
+        ];
+        sel.forEach(s => document.querySelectorAll(s).forEach(el => el.remove()));
+        for (const b of document.querySelectorAll('button')) {
+            const t = (b.textContent || '').trim().toLowerCase();
+            if (t === 'apply seed' || t === 'preflight check') b.remove();
+        }
+    }
+
+    window.__SIE_DISABLE_SEED__ = true;
+    window.getSeed = () => null;
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', removeSeedStuff, { once: true });
+    } else {
+        removeSeedStuff();
+    }
+})();
 
 // ------------------------- RNG HELPER FUNCTIONS -------------------------
 function rand() {
@@ -78,7 +111,7 @@ function randInt(min, max) {
 }
 
 // ------------------------- QUESTION BANK -------------------------
-const questionBank = []; // Initialize questionBank here
+const questionBank = [];
 function generateParametricBank() {
     // Logic to populate questionBank (placeholder)
 }
@@ -117,7 +150,6 @@ function updateProgress() {
     const total = currentQuizState.questions.length || 1;
     const answered = currentQuizState.answers.filter(a => a !== null && a !== undefined).length;
     const pct = Math.round((currentQuizState.currentIndex + 1) / total * 100);
-    // TODO: Add logic here if needed, or remove incomplete 'if' statement
 }
 
 // Package.json addition
