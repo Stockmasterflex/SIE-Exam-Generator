@@ -97,15 +97,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
 <input type="date" id="examDate" class="form-control" />
 <small style="color: var(--gray-500);">We'll track your countdown and optimize your study schedule</small>
 </div>
-<div class="form-group">
-<label class="form-label" for="seedInput">🎲 Session Seed (Optional)</label>
-<input type="text" id="seedInput" class="form-control" placeholder="e.g., 20250809 or any text" />
-<small style="color: var(--gray-500);">Use the same seed to reproduce question order exactly</small>
-</div>
-<div class="btn-group" style="margin-top:.5rem">
-<button class="btn btn-secondary" id="btnApplySeed">Apply Seed</button>
-<button class="btn btn-secondary" id="btnPreflight">Preflight Check</button>
-</div>
 <div id="examCountdown" style="color:var(--gray-700);font-weight:600"></div>
 </div>
 <div class="btn-grid">
@@ -528,14 +519,8 @@ console.error('❌ Self-tests error', e);
 }
 // ------------------------- EVENT WIRING -------------------------
 document.addEventListener('DOMContentLoaded', ()=>{
-// Seed box and preflight
-const params = new URLSearchParams(location.search);
-const savedSeed = localStorage.getItem('sieSeed');
-const initialSeed = params.get('seed') || savedSeed || 'default-'+new Date().toISOString().slice(0,10);
-setSeed(initialSeed);
-const seedInput = document.getElementById('seedInput'); if(seedInput){ seedInput.value = initialSeed; }
-document.getElementById('btnApplySeed').onclick = ()=>{ setSeed(seedInput.value || 'default'); alert('Seed applied. Start a new session to see the new order.'); };
-document.getElementById('btnPreflight').onclick = ()=>{ preflightCheck({mode:'manual', requested:85}); alert('Preflight completed. Check console for details.'); };
+// Auto-generate a fresh seed each run
+setSeed('run-'+Date.now());
 qs('#btnToggleCalc').onclick = ()=>{ qs('#calc').classList.toggle('hidden'); };
 qs('#btnToggleScratch').onclick = ()=>{ qs('#scratch').classList.toggle('hidden'); };
 const scratch = document.getElementById('scratchArea'); if(scratch){ scratch.addEventListener('input', saveProgress); }
